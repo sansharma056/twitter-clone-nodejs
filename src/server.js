@@ -4,6 +4,7 @@ import config from "./config";
 
 import userRouter from "./resources/user/user.router";
 import tweetRouter from "./resources/tweet/tweet.router";
+import { signin, signup, protect } from "./utils/auth";
 
 export const app = express();
 
@@ -13,6 +14,10 @@ app.use(cors());
 app.use(json());
 app.use(urlencoded({ extended: true }));
 
+app.post("/api/signin", signin);
+app.post("/api/signup", signup);
+
+app.use("/api/", protect);
 app.use("/api/user", userRouter);
 app.use("/api/tweet", tweetRouter);
 
