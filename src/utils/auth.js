@@ -9,7 +9,7 @@ export const newToken = (user) => {
 };
 
 export const verifyToken = (token) => {
-  new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     jwt.verify(token, config.secrets.jwt, (err, payload) => {
       if (err) return reject(err);
       resolve(payload);
@@ -91,12 +91,12 @@ export const protect = async (req, res, next) => {
   }
 
   const user = await User.findById(payload.id)
-    .select("-password")
+    .select("_id screen_name")
     .lean()
     .exec();
 
   if (!user) {
-    return res.status(401).end(0);
+    return res.status(401).end();
   }
 
   req.user = user;
