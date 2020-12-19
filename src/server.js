@@ -1,6 +1,7 @@
 import express, { json, urlencoded } from "express";
 import cors from "cors";
 import config from "./config";
+import { connect } from "./utils/db";
 
 import userRouter from "./resources/user/user.router";
 import tweetRouter from "./resources/tweet/tweet.router";
@@ -23,6 +24,7 @@ app.use("/api/tweet", tweetRouter);
 
 export const start = async () => {
   try {
+    await connect();
     app.listen(config.port, () => {
       console.log(`API on http://localhost:3000/api`);
     });
