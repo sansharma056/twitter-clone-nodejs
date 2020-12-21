@@ -29,15 +29,21 @@ const userSchema = new mongoose.Schema(
     },
     description: {
       type: String,
+      maxlength: 160,
     },
     date_of_birth: {
       type: Date,
     },
     location: {
       type: String,
+      maxlength: 30,
     },
     url: {
       type: String,
+      maxlength: 100,
+    },
+    tweets_list: {
+      type: Array,
     },
     followers_list: {
       type: Array,
@@ -50,14 +56,6 @@ const userSchema = new mongoose.Schema(
     },
     banner_url: {
       type: String,
-    },
-    default_profile_picture: {
-      type: Boolean,
-      default: true,
-    },
-    default_banner: {
-      type: Boolean,
-      default: true,
     },
   },
   { timestamps: true }
