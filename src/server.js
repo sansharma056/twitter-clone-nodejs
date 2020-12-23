@@ -1,5 +1,6 @@
 import express, { json, urlencoded } from "express";
 import cors from "cors";
+import path from "path";
 import config from "./config";
 import { connect } from "./utils/db";
 
@@ -12,8 +13,9 @@ export const app = express();
 app.disable("x-powered-by");
 
 app.use(cors());
-app.use(json());
-app.use(urlencoded({ extended: true }));
+app.use(json({ limit: "25mb" }));
+app.use(urlencoded({ extended: true, limit: "25mb" }));
+app.use(express.static(path.join(__dirname, "public")));
 
 app.post("/api/signin", signin);
 app.post("/api/signup", signup);
