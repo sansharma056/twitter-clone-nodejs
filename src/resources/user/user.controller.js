@@ -1,4 +1,6 @@
 import { User } from "./user.model";
+import fs from "fs";
+import path from "path";
 
 export const getOne = async (req, res) => {
   try {
@@ -36,4 +38,85 @@ export const getOne = async (req, res) => {
   }
 };
 
-export const updateOne = async (req, res) => {};
+export const updateOne = async (req, res) => {
+  try {
+    const basePath = path.join(__dirname, "../../");
+
+    const avatarPath = path.join(
+      basePath,
+      `public/profile_images/${req.user.screen_name}/`
+    );
+
+    const avatarFile = `${Date.now()}.png`;
+
+    fs.mkdir(
+      avatarPath,
+      {
+        recursive: true,
+      },
+      (error) => {
+        if (error) {
+          console.log(error);
+        } else {
+          fs.writeFile(
+            avatarPath + avatarFile,
+            req.body.profile_picture_url.replace(
+              /^data:([A-Za-z-+/]+);base64,/,
+              ""
+            ),
+            { encoding: "base64" },
+            (error) => {
+              if (error) {
+                console.log(error);
+              }
+            }
+          );
+        }
+      }
+    );
+
+    const bannerPath = path.join(
+      basePath,
+      `public/profile_banners/${req.user.screen_name}/`
+    );
+
+    const bannerFile = `${Date.now()}.png`;
+
+    fs.mkdir(
+      bannerPath,
+      {
+        recursive: true,
+      },
+      (error) => {
+        if (error) {
+          console.log(error);
+        } else {
+          fs.writeFile(
+            bannerPath + bannerFile,
+            req.body.banner_url.replace(/^data:([A-Za-z-+/]+);base64,/, ""),
+            { encoding: "base64" },
+            (error) => {
+              if (error) {
+                console.log(error);
+              }
+            }
+          );
+        }
+      }
+    );
+
+    const updatedUser = await User.findOneAndUpdate(
+      { screen_name: req.user.screen_name },
+      {
+        ...req.body,
+        banner_url: `http://localhost:3000/profile_banners/${req.user.screen_name}/${bannerFile}`,
+        profile_picture_url: `http://localhost:3000/profile_images/${req.user.screen_name}/${avatarFile}`,
+      },
+      { new: true }
+    );
+    console.log(updatedUser);
+  } catch (error) {
+    console.log(error);
+    res.status(400).send({ message: "Something went wrong.Please try again." });
+  }
+};
