@@ -1,6 +1,7 @@
 import { User } from "./user.model";
 import fs from "fs";
 import path from "path";
+import validator from "validator";
 
 export const getOne = async (req, res) => {
   try {
@@ -41,80 +42,95 @@ export const getOne = async (req, res) => {
 export const updateOne = async (req, res) => {
   try {
     const basePath = path.join(__dirname, "../../");
+    const profile_media_urls = {};
 
-    const avatarPath = path.join(
-      basePath,
-      `public/profile_images/${req.user.screen_name}/`
-    );
+    if (
+      req.body.profile_picture_url &&
+      validator.isBase64(
+        req.body.profile_picture_url.replace(/^data:([A-Za-z-+/]+);base64,/, "")
+      )
+    ) {
+      const avatarPath = path.join(
+        basePath,
+        `public/profile_images/${req.user.screen_name}/`
+      );
 
-    const avatarFile = `${Date.now()}.png`;
+      const avatarFile = `${Date.now()}.png`;
 
-    fs.mkdir(
-      avatarPath,
-      {
-        recursive: true,
-      },
-      (error) => {
-        if (error) {
-          console.log(error);
-        } else {
-          fs.writeFile(
-            avatarPath + avatarFile,
-            req.body.profile_picture_url.replace(
-              /^data:([A-Za-z-+/]+);base64,/,
-              ""
-            ),
-            { encoding: "base64" },
-            (error) => {
-              if (error) {
-                console.log(error);
+      fs.mkdir(
+        avatarPath,
+        {
+          recursive: true,
+        },
+        (error) => {
+          if (error) {
+            console.log(error);
+          } else {
+            fs.writeFile(
+              avatarPath + avatarFile,
+              req.body.profile_picture_url.replace(
+                /^data:([A-Za-z-+/]+);base64,/,
+                ""
+              ),
+              { encoding: "base64" },
+              (error) => {
+                if (error) {
+                  console.log(error);
+                }
               }
-            }
-          );
+            );
+          }
         }
-      }
-    );
+      );
 
-    const bannerPath = path.join(
-      basePath,
-      `public/profile_banners/${req.user.screen_name}/`
-    );
+      profile_media_urls.profile_picture_url = `http://localhost:3000/profile_images/${req.user.screen_name}/${avatarFile}`;
+    }
 
-    const bannerFile = `${Date.now()}.png`;
+    if (
+      req.body.banner_url &&
+      validator.isBase64(
+        req.body.banner_url.replace(/^data:([A-Za-z-+/]+);base64,/, "")
+      )
+    ) {
+      const bannerPath = path.join(
+        basePath,
+        `public/profile_banners/${req.user.screen_name}/`
+      );
 
-    fs.mkdir(
-      bannerPath,
-      {
-        recursive: true,
-      },
-      (error) => {
-        if (error) {
-          console.log(error);
-        } else {
-          fs.writeFile(
-            bannerPath + bannerFile,
-            req.body.banner_url.replace(/^data:([A-Za-z-+/]+);base64,/, ""),
-            { encoding: "base64" },
-            (error) => {
-              if (error) {
-                console.log(error);
+      const bannerFile = `${Date.now()}.png`;
+
+      fs.mkdir(
+        bannerPath,
+        {
+          recursive: true,
+        },
+        (error) => {
+          if (error) {
+            console.log(error);
+          } else {
+            fs.writeFile(
+              bannerPath + bannerFile,
+              req.body.banner_url.replace(/^data:([A-Za-z-+/]+);base64,/, ""),
+              { encoding: "base64" },
+              (error) => {
+                if (error) {
+                  console.log(error);
+                }
               }
-            }
-          );
+            );
+          }
         }
-      }
-    );
-
+      );
+      profile_media_urls.banner_url = `http://localhost:3000/profile_banners/${req.user.screen_name}/${bannerFile}`;
+    }
     const updatedUser = await User.findOneAndUpdate(
       { screen_name: req.user.screen_name },
       {
         ...req.body,
-        banner_url: `http://localhost:3000/profile_banners/${req.user.screen_name}/${bannerFile}`,
-        profile_picture_url: `http://localhost:3000/profile_images/${req.user.screen_name}/${avatarFile}`,
+        ...profile_media_urls,
       },
       { new: true }
     );
-    console.log(updatedUser);
   } catch (error) {
     console.log(error);
     res.status(400).send({ message: "Something went wrong.Please try again." });
