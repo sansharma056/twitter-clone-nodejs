@@ -29,7 +29,7 @@ export const getOne = async (req, res) => {
       followers: userData.followers_list,
       following: userData.following_list,
       tweets: userData.tweets_list,
-      isSelf: req.user._id === userData._id,
+      isSelf: req.user._id.equals(userData._id),
     };
 
     res.status(200).send({ user });
