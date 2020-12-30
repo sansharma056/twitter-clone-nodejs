@@ -43,13 +43,13 @@ const userSchema = new mongoose.Schema(
       maxlength: 100,
     },
     tweets_list: {
-      type: Array,
+      type: [{ type: mongoose.SchemaTypes.ObjectId, ref: "tweet" }],
     },
     followers_list: {
-      type: Array,
+      type: [{ type: mongoose.SchemaTypes.ObjectId, ref: "user" }],
     },
     following_list: {
-      type: Array,
+      type: [{ type: mongoose.SchemaTypes.ObjectId, ref: "user" }],
     },
     profile_picture_url: {
       type: String,
