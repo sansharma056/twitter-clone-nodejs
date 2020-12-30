@@ -1,9 +1,9 @@
-import Router from "router";
+import { Router } from "express";
+import { createOne, getOne } from "./tweet.controller";
 
 const router = Router();
 
-router.get("/", (req, res) => {
-  res.send(req.body);
-});
+router.post("/", createOne);
+router.get("/:id", getOne);
 
 export default router;
