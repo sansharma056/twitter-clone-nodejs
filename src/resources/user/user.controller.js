@@ -85,7 +85,7 @@ export const updateOne = async (req, res) => {
           console.log(error);
         });
     }
-    const updatedUser = await User.findOneAndUpdate(
+    const userData = await User.findOneAndUpdate(
       { screen_name: req.user.screen_name },
       {
         ...req.body,
@@ -93,7 +93,25 @@ export const updateOne = async (req, res) => {
       },
       { new: true }
     );
-    res.status(200).send({ message: "Profile edited." });
+    if (!userData) {
+      return res.status(400).end();
+    }
+    const user = {
+      avatarURL: userData.profile_picture_url,
+      bannerURL: userData.banner_url,
+      name: userData.name,
+      handle: userData.screen_name,
+      bio: userData.description,
+      location: userData.location,
+      website: userData.url,
+      birthDate: userData.date_of_birth,
+      joinDate: userData.createdAt,
+      followers: userData.followers_list,
+      following: userData.following_list,
+      tweets: userData.tweets_list,
+      isSelf: req.user._id.equals(userData._id),
+    };
+    res.status(200).send({ user });
   } catch (error) {
     console.log(error);
     res.status(400).send({ message: "Something went wrong.Please try again." });
