@@ -4,49 +4,11 @@ import config from "../../config";
 import cloudinary from "cloudinary";
 import validator from "validator";
 
-export const getOne = async (req, res) => {
-  const message = "Something went wrong. Please try again later.";
-  try {
-    const tweetData = await Tweet.findById(req.params.id)
-      .lean()
-      .populate("created_by")
-      .exec();
-
-    if (!tweetData) {
-      return res.status(400).send({ message });
-    }
-
-    const tweet = {
-      avatarURL: tweetData.created_by.profile_picture_url,
-      name: tweetData.created_by.name,
-      handle: tweetData.created_by.screen_name,
-      imageURL: tweetData.media_url,
-      content: tweetData.text,
-    };
-
-    res.status(200).send({ tweet });
-  } catch (error) {
-    console.log(error);
-    return res.status(400).send({ message });
+export const validateTweetId = (req, res, next) => {
+  if (!validator.isHexadecimal(req.params.id)) {
+    return res.status(400).send({ message: "Invalid Tweet id" });
   }
-};
-
-export const getMany = async (req, res) => {
-  const message = "Something went wrong. Please try again later.";
-  try {
-    const tweetsData = await Tweet.find({ created_by: req.user._id })
-      .select("id")
-      .lean()
-      .exec();
-    if (!tweetsData) {
-      return res.status(400).send({ message });
-    }
-    const tweets = tweetsData.map((tweetData) => tweetData._id);
-    res.status(200).send({ tweets });
-  } catch (error) {
-    console.log(error);
-    res.status(400).send({ message });
-  }
+  next();
 };
 
 export const createOne = async (req, res) => {
@@ -65,7 +27,6 @@ export const createOne = async (req, res) => {
           folder: "media",
           unique_filename: true,
           discard_original_filename: true,
-          allowed_formats: ["png"],
         })
         .then((result) => {
           mediaUrl = result.secure_url;
@@ -88,7 +49,7 @@ export const createOne = async (req, res) => {
         { $push: { tweets_list: tweet._id } }
       );
       if (!user) return res.status(401);
-      res.status(200).send({ message: "Tweeted Successfully!" });
+      res.status(200).send({ id: tweet._id });
     } else {
       return res.status(400).send({ message });
     }
@@ -97,6 +58,61 @@ export const createOne = async (req, res) => {
     res.status(400).send({ message });
   }
 };
+
+export const getMany = async (req, res) => {
+  const message = "Something went wrong. Please try again later.";
+  try {
+    const tweetsData = await Tweet.find({ created_by: req.user._id })
+      .select("id")
+      .lean()
+      .exec();
+    if (!tweetsData) {
+      return res.status(400).send({ message });
+    }
+    const tweets = tweetsData.map((tweetData) => tweetData._id).reverse();
+    res.status(200).send({ tweets });
+  } catch (error) {
+    console.log(error);
+    res
+      .status(400)
+      .send({ message: "Something went wrong. Please try again later." });
+  }
+};
+
+export const getOne = async (req, res) => {
+  try {
+    const tweetData = await Tweet.findById(req.params.id)
+      .lean()
+      .populate("created_by")
+      .exec();
+
+    if (!tweetData) {
+      return res.status(404).send({ message: "This Tweet is unavailable." });
+    }
+
+    const favorited = !!tweetData.favorited_by_list.filter((id) =>
+      id.equals(req.user._id)
+    ).length;
+
+    const tweet = {
+      avatarURL: tweetData.created_by.profile_picture_url,
+      name: tweetData.created_by.name,
+      handle: tweetData.created_by.screen_name,
+      imageURL: tweetData.media_url,
+      content: tweetData.text,
+      statusesCount: tweetData.statuses_count,
+      retweetCount: tweetData.retweet_count,
+      favoritesCount: tweetData.favorites_count,
+      favorited,
+    };
+
+    res.status(200).send({ tweet });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).send({ message });
+  }
+};
+
 export const deleteOne = async (req, res) => {
   const message = "Something went wrong. Please try again later.";
 
@@ -107,9 +123,13 @@ export const deleteOne = async (req, res) => {
     });
     if (!tweet) {
       return res.status(400).send({ message });
+    } else {
+      const user = await User.findOneAndUpdate(
+        { _id: req.user._id },
+        { $pull: { tweets_list: req.params.id } }
+      );
+      res.status(200).send({ id: req.params.id });
     }
-    console.log(tweet);
-    res.status(200).send({ message: req.params.id });
   } catch (error) {
     console.log(error);
     res.status(400).send({ message });
