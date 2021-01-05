@@ -28,7 +28,7 @@ export const getOne = async (req, res) => {
       joinDate: userData.createdAt,
       followers: userData.followers_list,
       following: userData.following_list,
-      tweets: userData.tweets_list,
+      tweets: userData.tweets_list.reverse(),
       isSelf: req.user._id.equals(userData._id),
     };
 
