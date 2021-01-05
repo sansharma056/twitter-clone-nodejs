@@ -82,7 +82,6 @@ export const getMany = async (req, res) => {
 export const getOne = async (req, res) => {
   try {
     const tweetData = await Tweet.findById(req.params.id)
-      .lean()
       .populate("created_by")
       .exec();
 
