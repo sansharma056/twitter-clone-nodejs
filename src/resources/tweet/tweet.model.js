@@ -37,15 +37,17 @@ const tweetSchema = new mongoose.Schema(
 );
 
 tweetSchema.virtual("retweet_count").get(function () {
-  return this.retweeted_by_list.length;
+  return this.retweeted_by_list.length
+    ? this.retweeted_by_list.length.length
+    : 0;
 });
 
 tweetSchema.virtual("favorites_count").get(function () {
-  return this.favorited_by_list.length;
+  return this.favorited_by_list.length ? this.favorited_by_list.length : 0;
 });
 
 tweetSchema.virtual("statuses_count").get(function () {
-  return this.replies_by_list.length;
+  return this.replies_by_list ? this.replies_by_list.length : 0;
 });
 
 export const Tweet = mongoose.model("tweet", tweetSchema);
