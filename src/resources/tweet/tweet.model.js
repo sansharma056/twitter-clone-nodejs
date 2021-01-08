@@ -18,6 +18,10 @@ const tweetSchema = new mongoose.Schema(
       type: mongoose.SchemaTypes.ObjectId,
       ref: "tweet",
     },
+    retweeted_status_id: {
+      type: mongoose.SchemaTypes.ObjectId,
+      ref: "tweet",
+    },
     created_by: {
       type: mongoose.SchemaTypes.ObjectId,
       ref: "user",
@@ -37,9 +41,7 @@ const tweetSchema = new mongoose.Schema(
 );
 
 tweetSchema.virtual("retweet_count").get(function () {
-  return this.retweeted_by_list.length
-    ? this.retweeted_by_list.length.length
-    : 0;
+  return this.retweeted_by_list.length ? this.retweeted_by_list.length : 0;
 });
 
 tweetSchema.virtual("favorites_count").get(function () {
