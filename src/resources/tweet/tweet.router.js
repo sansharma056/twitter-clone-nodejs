@@ -7,7 +7,7 @@ import {
   validateTweetId,
 } from "./tweet.controller";
 import favoriteRouter from "./favorite/favorite.router";
-
+import retweetRouter from "./retweet/retweet.router";
 const router = Router();
 
 router.post("/", createOne);
@@ -16,7 +16,9 @@ router.use("/:id", validateTweetId);
 
 router.get("/", getMany);
 router.get("/:id", getOne);
-router.use("/:id/favorite", favoriteRouter);
 router.delete("/:id", deleteOne);
+
+router.use("/:id/favorite", favoriteRouter);
+router.use("/:id/retweet", retweetRouter);
 
 export default router;
