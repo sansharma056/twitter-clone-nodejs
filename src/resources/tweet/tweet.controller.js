@@ -81,9 +81,15 @@ export const getMany = async (req, res) => {
 
 export const getOne = async (req, res) => {
   try {
-    const tweetData = await Tweet.findById(req.params.id)
-      .populate("created_by")
+    let tweetData = await Tweet.findById(req.params.id)
+      .populate("created_by retweeted_status_id")
       .exec();
+
+    if (tweetData.retweeted_status_id) {
+      tweetData = await tweetData.retweeted_status_id
+        .populate("created_by")
+        .execPopulate();
+    }
 
     if (!tweetData) {
       return res.status(404).send({ message: "This Tweet is unavailable." });
@@ -93,7 +99,12 @@ export const getOne = async (req, res) => {
       id.equals(req.user._id)
     ).length;
 
+    const retweeted = !!tweetData.retweeted_by_list.filter((id) =>
+      id.equals(req.user._id)
+    ).length;
+
     const tweet = {
+      id: tweetData._id,
       avatarURL: tweetData.created_by.profile_picture_url,
       name: tweetData.created_by.name,
       handle: tweetData.created_by.screen_name,
@@ -102,7 +113,9 @@ export const getOne = async (req, res) => {
       statusesCount: tweetData.statuses_count,
       retweetCount: tweetData.retweet_count,
       favoritesCount: tweetData.favorites_count,
+      retweeted,
       favorited,
+      isSelf: tweetData.created_by._id.equals(req.user._id),
     };
 
     res.status(200).send({ tweet });
