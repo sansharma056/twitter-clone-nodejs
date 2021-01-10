@@ -131,6 +131,12 @@ export const deleteOne = async (req, res) => {
     if (!tweet) {
       return res.status(400).send({ message });
     }
+    if (tweet.retweeted_status_id) {
+      return res.status(400).send({ message });
+    }
+    if (tweet.retweeted_by_list) {
+      await Tweet.findOneAndDelete({ retweeted_status_id: tweet._id });
+    }
 
     res.status(200).send({ id: req.params.id });
   } catch (error) {
