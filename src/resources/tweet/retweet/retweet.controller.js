@@ -1,5 +1,3 @@
-import { compareSync } from "bcrypt";
-import { User } from "../../user/user.model";
 import { Tweet } from "../tweet.model";
 
 export const createOne = async (req, res) => {
@@ -28,17 +26,6 @@ export const createOne = async (req, res) => {
 
     if (!retweet) {
       return res.status(400).send({ message });
-    }
-
-    const user = await User.findOneAndUpdate(
-      { _id: req.user._id },
-      { $push: { tweets_list: retweet._id } }
-    );
-
-    if (!user) {
-      return res.status(400).send({
-        message,
-      });
     }
 
     res.status(200).send({ retweeted: true });
@@ -74,24 +61,6 @@ export const deleteOne = async (req, res) => {
 
     if (!retweet) {
       return res.status(400).send({ message });
-    }
-
-    const user = await User.findOneAndUpdate(
-      {
-        _id: req.user._id,
-      },
-      {
-        $pull: {
-          tweets_list: retweet._id,
-        },
-      }
-    );
-
-    if (!user) {
-      console.log("error u");
-      return res.status(400).send({
-        message,
-      });
     }
 
     res.status(200).send({ retweeted: false });

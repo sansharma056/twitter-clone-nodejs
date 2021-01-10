@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { User } from "../user/user.model";
 
 const tweetSchema = new mongoose.Schema(
   {
@@ -39,6 +40,25 @@ const tweetSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+tweetSchema.pre("save", async function (next) {
+  await User.updateOne(
+    { _id: this.created_by },
+    { $push: { tweets_list: this._id } }
+  );
+  next();
+});
+
+tweetSchema.pre("findOneAndDelete", async function (next) {
+  const tweet = await this.model.findOne(this.getQuery());
+
+  await User.updateOne(
+    { _id: tweet.created_by },
+    { $pull: { tweets_list: tweet._id } }
+  );
+
+  next();
+});
 
 tweetSchema.virtual("retweet_count").get(function () {
   return this.retweeted_by_list.length ? this.retweeted_by_list.length : 0;

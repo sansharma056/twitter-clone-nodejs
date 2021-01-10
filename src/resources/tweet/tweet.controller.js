@@ -1,5 +1,4 @@
 import { Tweet } from "./tweet.model";
-import { User } from "../user/user.model";
 import config from "../../config";
 import cloudinary from "cloudinary";
 import validator from "validator";
@@ -43,16 +42,11 @@ export const createOne = async (req, res) => {
       media_url: mediaUrl,
     });
 
-    if (tweet) {
-      const user = await User.updateOne(
-        { _id: req.user._id },
-        { $push: { tweets_list: tweet._id } }
-      );
-      if (!user) return res.status(401);
-      res.status(200).send({ id: tweet._id });
-    } else {
+    if (!tweet) {
       return res.status(400).send({ message });
     }
+
+    res.status(200).send({ id: tweet._id });
   } catch (error) {
     console.log(error);
     res.status(400).send({ message });
@@ -64,12 +58,13 @@ export const getMany = async (req, res) => {
   try {
     const tweetsData = await Tweet.find({ created_by: req.user._id })
       .select("id")
+      .sort("-createdAt")
       .lean()
       .exec();
     if (!tweetsData) {
       return res.status(400).send({ message });
     }
-    const tweets = tweetsData.map((tweetData) => tweetData._id).reverse();
+    const tweets = tweetsData.map((tweetData) => tweetData._id);
     res.status(200).send({ tweets });
   } catch (error) {
     console.log(error);
@@ -85,14 +80,14 @@ export const getOne = async (req, res) => {
       .populate("created_by retweeted_status_id")
       .exec();
 
+    if (!tweetData) {
+      return res.status(404).send({ message: "This Tweet is unavailable." });
+    }
+
     if (tweetData.retweeted_status_id) {
       tweetData = await tweetData.retweeted_status_id
         .populate("created_by")
         .execPopulate();
-    }
-
-    if (!tweetData) {
-      return res.status(404).send({ message: "This Tweet is unavailable." });
     }
 
     const favorited = !!tweetData.favorited_by_list.filter((id) =>
@@ -135,13 +130,9 @@ export const deleteOne = async (req, res) => {
     });
     if (!tweet) {
       return res.status(400).send({ message });
-    } else {
-      const user = await User.findOneAndUpdate(
-        { _id: req.user._id },
-        { $pull: { tweets_list: req.params.id } }
-      );
-      res.status(200).send({ id: req.params.id });
     }
+
+    res.status(200).send({ id: req.params.id });
   } catch (error) {
     console.log(error);
     res.status(400).send({ message });
