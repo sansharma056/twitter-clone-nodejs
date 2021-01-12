@@ -7,7 +7,6 @@ export const getOne = async (req, res) => {
   try {
     const userData = await User.findOne({ screen_name: req.params.screenName })
       .select("-password")
-      .lean()
       .exec();
 
     if (!userData) {
@@ -15,6 +14,10 @@ export const getOne = async (req, res) => {
         message: "This account doesn’t exist\nTry searching for another.",
       });
     }
+
+    const following = !!userData.followers_list.filter((id) =>
+      id.equals(req.user._id)
+    ).length;
 
     const user = {
       avatarURL: userData.profile_picture_url,
@@ -27,7 +30,10 @@ export const getOne = async (req, res) => {
       birthDate: userData.date_of_birth,
       joinDate: userData.createdAt,
       followers: userData.followers_list,
-      following: userData.following_list,
+      friends: userData.following_list,
+      followingCount: userData.following_count,
+      followersCount: userData.followers_count,
+      following,
       tweets: userData.tweets_list.reverse(),
       isSelf: req.user._id.equals(userData._id),
     };
