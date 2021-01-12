@@ -87,4 +87,12 @@ userSchema.methods.checkPassword = function checkPassword(password) {
   });
 };
 
+userSchema.virtual("followers_count").get(function () {
+  return this.followers_list.length ? this.followers_list.length : 0;
+});
+
+userSchema.virtual("following_count").get(function () {
+  return this.following_list.length ? this.following_list.length : 0;
+});
+
 export const User = mongoose.model("user", userSchema);
