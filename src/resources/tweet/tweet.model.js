@@ -34,6 +34,9 @@ const tweetSchema = new mongoose.Schema(
     favorited_by_list: {
       type: [{ type: mongoose.SchemaTypes.ObjectId, ref: "user" }],
     },
+    bookmarked_by_list: {
+      type: [{ type: mongoose.SchemaTypes.ObjectId, ref: "user" }],
+    },
     statuses_list: {
       type: [{ type: mongoose.SchemaTypes.ObjectId, ref: "tweet" }],
     },
