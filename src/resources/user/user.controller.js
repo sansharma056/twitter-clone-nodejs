@@ -19,6 +19,9 @@ export const getOne = async (req, res) => {
       id.equals(req.user._id)
     ).length;
 
+    const tweets = (await userData.tweets_list).reverse();
+    const bookmarks = (await userData.bookmarks_list).reverse();
+
     const user = {
       avatarURL: userData.profile_picture_url,
       bannerURL: userData.banner_url,
@@ -34,7 +37,8 @@ export const getOne = async (req, res) => {
       followingCount: userData.following_count,
       followersCount: userData.followers_count,
       following,
-      tweets: userData.tweets_list.reverse(),
+      tweets,
+      bookmarks,
       isSelf: req.user._id.equals(userData._id),
     };
 

@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
+import { Tweet } from "../tweet/tweet.model";
 
 const userSchema = new mongoose.Schema(
   {
@@ -41,9 +42,6 @@ const userSchema = new mongoose.Schema(
     url: {
       type: String,
       maxlength: 100,
-    },
-    tweets_list: {
-      type: [{ type: mongoose.SchemaTypes.ObjectId, ref: "tweet" }],
     },
     followers_list: {
       type: [{ type: mongoose.SchemaTypes.ObjectId, ref: "user" }],
@@ -93,6 +91,32 @@ userSchema.virtual("followers_count").get(function () {
 
 userSchema.virtual("following_count").get(function () {
   return this.following_list.length ? this.following_list.length : 0;
+});
+
+userSchema.virtual("tweets_list").get(async function () {
+  const tweetsData = await Tweet.find({ created_by: this._id })
+    .select("id")
+    .sort("-createdAt")
+    .lean()
+    .exec();
+  if (!tweetsData) {
+    return [];
+  }
+  const tweets = tweetsData.map((tweetData) => tweetData._id);
+  return tweets;
+});
+
+userSchema.virtual("bookmarks_list").get(async function () {
+  const tweetsData = await Tweet.find({ bookmarked_by_list: { $in: this._id } })
+    .select("id")
+    .sort("-createdAt")
+    .lean()
+    .exec();
+  if (!tweetsData) {
+    return [];
+  }
+  const tweets = tweetsData.map((tweetData) => tweetData._id);
+  return tweets;
 });
 
 export const User = mongoose.model("user", userSchema);
