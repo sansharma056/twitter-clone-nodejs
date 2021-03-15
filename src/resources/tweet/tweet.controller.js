@@ -98,6 +98,10 @@ export const getOne = async (req, res) => {
       id.equals(req.user._id)
     ).length;
 
+    const bookmarked = !!tweetData.bookmarked_by_list.filter((id) =>
+      id.equals(req.user._id)
+    ).length;
+
     const tweet = {
       id: tweetData._id,
       avatarURL: tweetData.created_by.profile_picture_url,
@@ -110,6 +114,7 @@ export const getOne = async (req, res) => {
       favoritesCount: tweetData.favorites_count,
       retweeted,
       favorited,
+      bookmarked,
       isSelf: tweetData.created_by._id.equals(req.user._id),
     };
 
@@ -135,7 +140,7 @@ export const deleteOne = async (req, res) => {
       return res.status(400).send({ message });
     }
     if (tweet.retweeted_by_list.length) {
-      await Tweet.findOneAndDelete({ retweeted_status_id: tweet._id });
+      await Tweet.deleteMany({ retweeted_status_id: tweet._id });
     }
 
     res.status(200).send({ id: req.params.id });
