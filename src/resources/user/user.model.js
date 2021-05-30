@@ -96,7 +96,7 @@ userSchema.virtual("following_count").get(function () {
 userSchema.virtual("tweets_list").get(async function () {
   const tweetsData = await Tweet.find({ created_by: this._id })
     .select("id")
-    .sort("-createdAt")
+    .sort("createdAt")
     .lean()
     .exec();
   if (!tweetsData) {
